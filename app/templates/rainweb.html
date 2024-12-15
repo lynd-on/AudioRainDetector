@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Detection</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #eaeaea; /* Light grayish background */
+            color: #333;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            background-color: #f9a800; /* Slightly darker yellow */
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #388e3c; /* Darker green */
+            color: white;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f1f1; /* Slightly darker gray */
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .no-risk {
+            background-color: #c8e6c9; /* Soft green */
+            color: #388e3c; /* Dark green */
+        }
+
+        .low-risk {
+            background-color: #fff9c4; /* Soft yellow */
+            color: #7e5700; /* Darker yellow */
+        }
+
+        .moderate-risk {
+            background-color: #ffe082; /* Soft orange */
+            color: #7e5700; /* Darker orange */
+        }
+
+        .high-risk {
+            background-color: #f2b3b3; /* Soft red */
+            color: #d32f2f; /* Dark red */
+        }
+
+        /* Rain intensity colors */
+        .light-rain {
+            background-color: #a5d6a7; /* Light green */
+            color: #388e3c; /* Dark green */
+        }
+
+        .moderate-rain {
+            background-color: #ffeb3b; /* Light yellow */
+            color: #fbc02d; /* Darker yellow */
+        }
+
+        .heavy-rain {
+            background-color: #ff7043; /* Light red-orange */
+            color: #d32f2f; /* Dark red */
+        }
+
+        .no-rain {
+            background-color: #90a4ae; /* Grayish blue */
+            color: #607d8b; /* Dark gray-blue */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #predictionsTable {
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        /* Responsive styling for small screens */
+        @media (max-width: 768px) {
+            table {
+                font-size: 12px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            td, th {
+                padding: 8px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Rainfall Intensity Predictions</h1>
+        <table id="predictionsTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Intensity</th>
+                    <th>Flood Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Predictions will be loaded here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to fetch predictions via AJAX and update the table
+        function fetchPredictions() {
+            $.get('/get_predictions', function(data) {
+                var tableBody = $('#predictionsTable tbody');
+                tableBody.empty();  // Clear existing table data
+
+                // Loop through the data and append new rows
+                data.forEach(function(prediction) {
+                    var riskClass = getRiskClass(prediction.flood_prediction); // Get CSS class based on flood risk
+                    var intensityClass = getIntensityClass(prediction.intensity); // Get CSS class based on intensity
+
+                    var row = '<tr class="' + riskClass + '">';
+                    row += '<td>' + prediction.time + '</td>';
+                    row += '<td class="' + intensityClass + '">' + prediction.intensity + '</td>';
+                    row += '<td>' + prediction.flood_prediction + '</td>';
+                    row += '</tr>';
+                    tableBody.append(row);
+                });
+            });
+        }
+
+        // Determine CSS class based on flood risk
+        function getRiskClass(floodRisk) {
+            switch(floodRisk) {
+                case 'No Risk': return 'no-risk';
+                case 'Low Risk': return 'low-risk';
+                case 'Moderate Risk': return 'moderate-risk';
+                case 'High Risk': return 'high-risk';
+                default: return '';
+            }
+        }
+
+        // Determine CSS class based on rain intensity
+        function getIntensityClass(intensity) {
+            switch(intensity) {
+                case 'Light Rain': return 'light-rain';
+                case 'Moderate Rain': return 'moderate-rain';
+                case 'Heavy Rain': return 'heavy-rain';
+                case 'No Rain': return 'no-rain';
+                default: return '';
+            }
+        }
+
+        // Call the function every 5 seconds to refresh the table
+        setInterval(fetchPredictions, 5000);
+
+        // Initial call to populate the table when the page loads
+        fetchPredictions();
+    </script>
+
+</body>
+</html>

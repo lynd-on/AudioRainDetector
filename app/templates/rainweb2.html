@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainfall Detection</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #e8f5e9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            background-color: #81c784;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        #warning {
+            text-align: center;
+            color: #b71c1c;
+            font-size: 20px;
+            font-weight: bold;
+            display: none;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .high-risk {
+            background-color: #f8d7da; /* Light red */
+            color: #721c24;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        #predictionsTable {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Rainfall Intensity Predictions</h1>
+        <div id="warning">⚠️ High Risk Detected! Take immediate action! ⚠️</div>
+        <table id="predictionsTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Intensity</th>
+                    <th>Flood Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Preload 20 empty rows -->
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+                <tr><td>-</td><td>-</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to fetch predictions via AJAX and update the table
+        function fetchPredictions() {
+            $.get('/get_predictions', function(data) {
+                const tableBody = $('#predictionsTable tbody');
+                const warning = $('#warning');
+                
+                tableBody.empty(); // Clear existing table data
+
+                let highRiskDetected = false;
+
+                // Loop through the data and prepend new rows
+                data.forEach(function(prediction) {
+                    const rowClass = prediction.flood_prediction === 'High Risk' ? 'high-risk' : '';
+                    if (prediction.flood_prediction === 'High Risk') highRiskDetected = true;
+
+                    const row = `
+                        <tr class="${rowClass}">
+                            <td>${prediction.time}</td>
+                            <td>${prediction.intensity}</td>
+                            <td>${prediction.flood_prediction}</td>
+                        </tr>`;
+                    tableBody.prepend(row); // Prepend rows to ensure latest data is on top
+                });
+
+                // Add empty rows to ensure the table always has 20 rows
+                const remainingRows = 20 - data.length;
+                for (let i = 0; i < remainingRows; i++) {
+                    tableBody.append('<tr><td>-</td><td>-</td><td>-</td></tr>');
+                }
+
+                // Show or hide the warning
+                if (highRiskDetected) {
+                    warning.show();
+                } else {
+                    warning.hide();
+                }
+            });
+        }
+
+        // Call the function every 5 seconds to refresh the table
+        setInterval(fetchPredictions, 5000);
+
+        // Initial call to populate the table when the page loads
+        fetchPredictions();
+    </script>
+
+</body>
+</html>
